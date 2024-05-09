@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 class CartController extends Controller
 {
     //
+    const MOMS = 0.25;
     public function AddItems(Request $request) {
         try {
             $cart = Cart::where('product_id', $request->product_id)->first();
@@ -20,7 +21,8 @@ class CartController extends Controller
                 $cart->quantity += $request->quantity;
                 $cart->save();
             }
-
+        
+            
             return response()->json($cart, 201);
         } catch (\Throwable $th) {
             //throw $th;
@@ -32,17 +34,22 @@ class CartController extends Controller
             ->select('products.product_name', 'products.price', 'cart.product_id', 'cart.quantity')
             ->leftJoin('cart', 'cart.product_id', '=', 'products.id')
             ->get();
-        $totalPrice = 0;
-        foreach ($cart as $key => $value) {
-            $totalPrice += $value->price;
-        }
-        $totalPriceMOMS = $totalPrice * 1.25;
+        
+        list($totalPrice, $moms) = self::CalculatePrice($cart);
 
         return response()->json([
             'totalPrice' => $totalPrice,
-            'totalPriceMOMS' => $totalPriceMOMS,
+            'moms' => $moms,
             'cart' =>$cart
         ]);
+    }
+    private function CalculatePrice($cart) {
+        $totalPrice = 0;
+        foreach ($cart as $key => $value) {
+            $totalPrice += ($value->price * $value->quantity);
+        }
+        $moms = $totalPrice * self::MOMS;
+        return [$totalPrice, $moms];
     }
     public function EditItem(Request $request, string $id) {
         try {
