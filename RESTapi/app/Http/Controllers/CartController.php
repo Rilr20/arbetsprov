@@ -20,9 +20,23 @@ class CartController extends Controller
         return response()->json("hi"); 
     }
     public function EditItem(Request $request, string $id) {
+        try {
+            $cart = Cart::where('product_id', $id)->firstOrFail();
+            $cart->quantity = $request->quantity;
+            $cart->save();
+            return response()->json($cart, 200);
+        } catch (\Throwable $th) {
+            return response()->json(['error' => "Product is not in cart"], 400);
+        }
 
     }
     public function DeleteItem(string $id) {
-
+        try {
+            $cart = Cart::where('product_id', $id)->firstOrFail();
+            $cart->delete();
+            return response()->json(['success' => 'product deleted'], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['error' => "Product is not in cart"], 400);
+        }
     }
 }
