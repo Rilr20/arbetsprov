@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Cart;
-
+use Illuminate\Support\Facades\DB;
 class CartController extends Controller
 {
     //
@@ -17,7 +17,21 @@ class CartController extends Controller
         return response()->json($cart, 201);
     }
     public function GetCart() {
-        return response()->json("hi"); 
+        $cart = DB::table('products')
+            ->select('products.product_name', 'products.price', 'cart.product_id', 'cart.quantity')
+            ->leftJoin('cart', 'cart.product_id', '=', 'products.id')
+            ->get();
+        $totalPrice = 0;
+        foreach ($cart as $key => $value) {
+            $totalPrice += $value->price;
+        }
+        $totalPriceMOMS = $totalPrice * 1.25;
+
+        return response()->json([
+            'totalPrice' => $totalPrice,
+            'totalPriceMOMS' => $totalPriceMOMS,
+            'cart' =>$cart
+        ]);
     }
     public function EditItem(Request $request, string $id) {
         try {
