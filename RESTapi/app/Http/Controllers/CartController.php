@@ -10,6 +10,9 @@ class CartController extends Controller
     //
     const MOMS = 0.25;
     public function AddItems(Request $request) {
+        if ($request->quantity <= 0) {
+            return response()->json(['error' => 'Quantity is below or zero'],400);
+        }
         try {
             $cart = Cart::where('product_id', $request->product_id)->first();
             if ($cart == NULL) {
@@ -62,6 +65,9 @@ class CartController extends Controller
         return [$totalPrice, $moms];
     }
     public function EditItem(Request $request, string $id) {
+        if ($request->quantity <= 0) {
+            return response()->json(['error' => 'Quantity is below or zero'],400);
+        }
         try {
             $cart = Cart::where('product_id', $id)->firstOrFail();
             $cart->quantity = $request->quantity;
