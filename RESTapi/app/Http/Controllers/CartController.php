@@ -9,12 +9,23 @@ class CartController extends Controller
 {
     //
     public function AddItems(Request $request) {
-        $cart = new Cart;
-        $cart->product_id = $request->product_id;
-        $cart->quantity = $request->quantity;
-        $cart->save();
+        try {
+            $cart = Cart::where('product_id', $request->product_id)->first();
+            if ($cart == NULL) {
+                $cart = new Cart;
+                $cart->product_id = $request->product_id;
+                $cart->quantity = $request->quantity;
+                $cart->save();
+            } else {
+                $cart->quantity += $request->quantity;
+                $cart->save();
+            }
 
-        return response()->json($cart, 201);
+            return response()->json($cart, 201);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return response()->json(['error' => 'Product id does not exist'], 400);
+        }
     }
     public function GetCart() {
         $cart = DB::table('products')
