@@ -22,9 +22,19 @@ class CartController extends Controller
                 $cart->save();
             }
         
+            $cart = DB::table('products')
+                ->select('products.product_name', 'products.price', 'cart.product_id', 'cart.quantity')
+                ->leftJoin('cart', 'cart.product_id', '=', 'products.id')
+                ->get();
             
-            return response()->json($cart, 201);
-        } catch (\Throwable $th) {
+            list($totalPrice, $moms) = self::CalculatePrice($cart);
+
+            return response()->json([
+                'totalPrice' => $totalPrice,
+                'moms' => $moms,
+                'cart' =>$cart
+            ]);
+            } catch (\Throwable $th) {
             //throw $th;
             return response()->json(['error' => 'Product id does not exist'], 400);
         }
